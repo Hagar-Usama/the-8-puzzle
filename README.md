@@ -11,6 +11,9 @@
 
 ### Tasks
 * [ ] node class
+  * [x] class basics
+  * [ ] print tree (basic)
+  * [ ] print tree as graph (try)
 * [ ] BFS
 * [ ] DFS
 * [ ] A* search
