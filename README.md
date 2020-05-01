@@ -13,7 +13,7 @@
 * [ ] node class
   * [x] class basics
   * [ ] print tree (basic)
-  * [ ] print tree as graph (try)
+  * [ ] print tree as graph (try)[1]
 * [ ] BFS
 * [ ] DFS
 * [ ] A* search
@@ -21,3 +21,6 @@
   * [ ] Euclidean heuristic
 * [ ] if have time 😏, visualization
 * [ ] report
+
+
+[1]: https://plotly.com/python/tree-plots/
