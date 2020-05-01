@@ -30,13 +30,14 @@ def print_green(msg):
 
 class Node():
     # state is list of list. Each list is a row
-    def __init__(self, state, parent, depth=0, hcost=0):
+    def __init__(self, state, parent, depth=0, h_cost=0):
         self.state = state
         self.parent = parent
         self.neighbors = []
         self.tileRow ,self.tileCol = get_empty_tile(self)
-        self.hcost = hcost
+        self.h_cost = h_cost
         self.depth = depth
+        self.total_cost = h_cost + depth
         
     
     def dfs(self, goal):
@@ -162,7 +163,7 @@ class Node():
             print(f'explored: {explored}')    
 
 
-    def a_start(self, goal, heuristic):
+    def a_start(self, goal, heuristic= 'Manhattan'):
         '''
         A*(initial_state, goal):
             # returns Success or Failure
@@ -196,7 +197,7 @@ class Node():
         explored = []
 
         while frontier:
-            frontier = sorted(frontier, key= lambda c:c.cost)
+            frontier = sorted(frontier, key= lambda c:c.total_cost)
             current_node = frontier.pop(0)
             if current_node.state not in explored:
                 print("adding current_node in explored")
@@ -214,17 +215,20 @@ class Node():
 
             for i in range(0,len(status)):
                 if status[i]:
-                    depth = current_node.depth + 1
+                    # mind node depth (has to be changed)
 
-                    h_cost = get_heuristic_val()
-
-                    new_state = self.move(i,current_node, depth=depth)
+                    new_state = self.move(i,current_node)
                     print_red(f'move {new_state}')
 
                     
                     if new_state not in explored:
                         print("state not in explored")
-                        ns = Node(new_state, current_node)
+                        depth = current_node.depth + 1
+                        h_cost = get_heuristic_val(new_state, goal, option=heuristic)
+                        total_cost = h_cost + depth
+
+
+                        ns = Node(new_state, current_node, depth=depth, h_cost=h_cost)
                         frontier.append(ns)
                         current_node.neighbors.append(ns) 
 
@@ -526,33 +530,27 @@ def find(c, board):
 
 def main():
 
-    state10 = [[5,0,8],[4,2,1], [7,3,6]]
-    state20 = [[1,2,3],[4,5,6], [7,8,0]]
-    get_heuristic_val(state10, state20)
-    get_heuristic_val(state10, state20, option='Euclidean')
-    print_blue('*.*.*.*.*')
+    #state10 = [[5,0,8],[4,2,1], [7,3,6]]
+    #state20 = [[1,2,3],[4,5,6], [7,8,0]]
+    #get_heuristic_val(state10, state20)
+    #get_heuristic_val(state10, state20, option='Euclidean')
+    #print_blue('*.*.*.*.*')
 
     state1 = [[1,2,5],[3,4,0],[6,7,8]]
     state2 = [[0,1,2],[3,4,5],[6,7,8]]
 
     ln = Node(state1, None)
-    l2 =  Node(state1, None)
-    ln.cost = 15
-    l2.cost = 2
 
+    la = Node(state1, None)
+    la.a_start(state2)
+    
+""" 
     #print_blue(ln.bfs(state2))
     frontier = [ln , l2]
     frontier = sorted(frontier, key= lambda c:c.cost)
     print(frontier[0].cost)
     print(frontier[1].cost)
 
-    #l2.dfs(state2)
-    
-    ll =[1,2,8, 12,5]
-    print(ll.pop(0))
-    print(ll)
-    print(ll.pop(-1))
-    print(ll)
-
+ """
 if __name__ == "__main__":
     main()
