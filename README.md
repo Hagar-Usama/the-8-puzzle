@@ -14,11 +14,11 @@
   * [x] class basics
   * [ ] print tree (basic)
   * [ ] print tree as graph (try)[1]
-* [ ] BFS
-* [ ] DFS
-* [ ] A* search
-  * [ ] Manhattan heuristic
-  * [ ] Euclidean heuristic
+* [x] BFS
+* [x] DFS
+* [x] A* search
+  * [x] Manhattan heuristic
+  * [x] Euclidean heuristic
 * [ ] if have time 😏, visualization
 * [ ] report
 

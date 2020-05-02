@@ -1,5 +1,9 @@
 
 import copy
+import time
+from tabulate import tabulate
+import os
+import sys
 
 # https://bluesock.org/~willkg/dev/ansi.html
 ANSI_RESET = "\u001B[0m"
@@ -8,6 +12,22 @@ ANSI_GREEN = "\u001B[32m"
 ANSI_YELLOW = "\u001B[33m"
 ANSI_BLUE = "\u001B[34m"
 ANSI_PURPLE = "\u001B[35m"
+ANSI_ORANGE_BG = "\033[48;2;255;165;0m"
+ANSI_DARK_CYAN = "\033[96m"
+
+purple = "\033[95m"
+cyan = "\033[96m"
+darkcyan = "\033[36m"
+blue = "\033[94m"
+green = "\033[92m"
+yellow = "\033[93m"
+red = "\033[91m"
+magenta = "\033[35m"
+white = "\033[37m"
+black = "\033[30m"
+
+def print_dark_cyan(msg):
+    print(f"{ANSI_DARK_CYAN}{msg}{ANSI_RESET}")
 
 def print_yellow(msg):
     print(f"{ANSI_YELLOW}{msg}{ANSI_RESET}")
@@ -38,7 +58,10 @@ class Node():
         self.h_cost = h_cost
         self.depth = depth
         self.total_cost = h_cost + depth
-        
+        self.node_path = None
+        self.expanded_nodes = []
+        self.elapsed_time = 0
+        self.last_search = ""
     
     def dfs(self, goal):
         '''
@@ -63,46 +86,78 @@ class Node():
                     
             return Failure
         '''
-
+        self.last_search = "DFS"
         frontier = [self]
         explored = []
         
+        start_time = time.time()
+        
         while frontier:
+            # pop last one 
             current_node = frontier.pop(-1)
             if current_node.state not in explored:
-                print("adding current_node in explored")
+                print_blue("[Steps] Add Current Node to explored")
                 explored.append(current_node.state)
             #explored.add(current_node.state)
 
-            print_yellow(f'current state: {current_node.state}')
+            print_yellow(f'[Steps] current state:')
+            print_state(current_node.state)
 
             if current_node.state == goal:
-                print_blue("Target found")
+                print_purple("[Steps] Target found")
+                self.node_path = current_node
+                self.expanded_nodes = explored
+
+                self.elapsed_time = time.time() - start_time
+        
                 return True
             
             status = self.try_move(current_node)
-            print_blue(status)
+            #moves_list = (map(lambda x: self.get_move_name(x), L))
+            #moves = list(map(lambda x: x**2, L))
+            #print_dark_cyan(f'Possible_Moves: {}')
+
+            #print_dark_cyan(f'Possible_Moves: Left: {status[0]}, Right: {status[1]}, Up: {status[2]}, Down: {status[3]}')
+
+            #print_blue(status)
 
             for i in range(0,len(status)):
                 if status[i]:
                     new_state = self.move(i,current_node)
-                    print_red(f'move {new_state}')
-
+                    #print_red(f'move {new_state}')
+                    print_blue(f'[Steps] Move {self.get_move_name(i)}')
+                    print_state(new_state)
                     
                     if new_state not in explored:
-                        print("state not in explored")
-                        ns = Node(new_state, current_node)
+                        #print("state not in explored")
+                        print_blue("[Steps] Add Next Node to Frontier")
+                        print_state(new_state)
+
+                        ns = Node(new_state, current_node, depth=current_node.depth+1)
                         frontier.append(ns)
                         current_node.neighbors.append(ns) 
 
-            print(f'explored: {explored}')    
+            #print(f'explored: {explored}') 
+
+        elapsed_time = time.time() - start_time   
 
 
+    def get_move_name(self,move_no):  
+        
+        LEFT = 0
+        RIGHT = 1
+        UP = 2
+        DOWN = 3 
 
+        if move_no == LEFT:
+            return "Left"
+        elif  move_no == RIGHT:
+            return "Right"
+        elif  move_no == UP:
+            return "Up"
+        elif move_no == DOWN:
+            return "Down"
 
-
-
-        pass
 
     def bfs(self, goal):
         '''
@@ -128,42 +183,62 @@ class Node():
                     
             return Failure
         '''
-
+        self.last_search = "BFS"
         frontier = [self]
         explored = []
+        
+        #start_time = time.time()
+
+        start_time = time.time()
         
         while frontier:
             current_node = frontier.pop(0)
             if current_node.state not in explored:
-                print("adding current_node in explored")
+                print_blue("[Steps] Add Current Node to explored")
                 explored.append(current_node.state)
             #explored.add(current_node.state)
 
-            print_yellow(f'current state: {current_node.state}')
+            print_yellow(f'[Steps] current state:')
+            print_state(current_node.state)
 
             if current_node.state == goal:
-                print_blue("Target found")
+                print_purple("[Steps] Target found")
+                self.node_path = current_node
+                self.expanded_nodes = explored
+
+                self.elapsed_time = time.time() - start_time 
+        
+
                 return True
             
             status = self.try_move(current_node)
-            print_blue(status)
+            #print_blue(f'Possible_Moves: Left: {status[0]}, Right: {status[1]}, Up: {status[2]}, Down: {status[3]}')
 
             for i in range(0,len(status)):
                 if status[i]:
                     new_state = self.move(i,current_node)
-                    print_red(f'move {new_state}')
+                    #print_red(f'MAKE  {new_state}')
+                    print_blue(f'[Steps] Move {self.get_move_name(i)}')
+                    print_state(new_state)
+                    #time.sleep(0.5)
+                    #os.system('clear')
+
 
                     
                     if new_state not in explored:
-                        print("state not in explored")
-                        ns = Node(new_state, current_node)
+                        #print("state not in explored")
+                        print_blue("[Steps] Add Next Node to Frontier")
+                        print_state(new_state)
+                        ns = Node(new_state, current_node, depth=current_node.depth+1)
                         frontier.append(ns)
                         current_node.neighbors.append(ns) 
 
-            print(f'explored: {explored}')    
+            #print(f'explored: {explored}')
+
+        #elapsed_time = time.time() - start_time   
 
 
-    def a_start(self, goal, heuristic= 'Manhattan'):
+    def a_star(self, goal, heuristic= 'Manhattan'):
         '''
         A*(initial_state, goal):
             # returns Success or Failure
@@ -192,37 +267,49 @@ class Node():
             f(n) = total cost
 
         '''
-        # let the
+        
+        self.last_search = "A* " + heuristic
         frontier = [self]
         explored = []
 
+        start_time = time.time()
+        
         while frontier:
             frontier = sorted(frontier, key= lambda c:c.total_cost)
             current_node = frontier.pop(0)
             if current_node.state not in explored:
-                print("adding current_node in explored")
+                print_blue("[Steps] Add Current Node to explored")
+                #print("adding current_node in explored")
                 explored.append(current_node.state)
 
 
-            print_yellow(f'current state: {current_node.state}')
+            print_yellow(f'[Steps] current state:')
+            print_state(current_node.state)
 
             if current_node.state == goal:
-                print_blue("Target found")
+                print_purple("[Steps] Target found")
+                self.node_path = current_node
+                self.expanded_nodes = explored
+
+                self.elapsed_time = time.time() - start_time 
                 return True
 
             status = self.try_move(current_node)
-            print_blue(status)
+            #print_blue(f'Possible_Moves: Left: {status[0]}, Right: {status[1]}, Up: {status[2]}, Down: {status[3]}')
 
             for i in range(0,len(status)):
                 if status[i]:
                     # mind node depth (has to be changed)
 
                     new_state = self.move(i,current_node)
-                    print_red(f'move {new_state}')
+                    #print_red(f'move {new_state}')
+                    print_blue(f'[Steps] Move {self.get_move_name(i)}')
+
 
                     
                     if new_state not in explored:
-                        print("state not in explored")
+                        print_blue("[Steps] Add Next Node to Frontier")
+                        print_state(new_state)
                         depth = current_node.depth + 1
                         h_cost = get_heuristic_val(new_state, goal, option=heuristic)
                         total_cost = h_cost + depth
@@ -232,12 +319,12 @@ class Node():
                         frontier.append(ns)
                         current_node.neighbors.append(ns) 
 
-            print(f'explored: {explored}')
-            
+            #print(f'explored: {explored}')
             
 
 
-        pass
+        
+            
     
     def try_move(self, current_node):
         '''
@@ -332,17 +419,88 @@ class Node():
 
         return board
 
-    def get_heuristic_val(state, goal, option):
-        if option == 'Manhattan':
-            pass
+    def print_path(self):
 
+        path_stack = []
+        #path_list = []
+
+        n = copy.deepcopy(self.node_path)
+        #print_green(n)
+
+        while (n != None):
+            #print_purple(n.state)
+            path_stack.append(n.state)
+            n = n.parent
+        
+        while path_stack:
+            #printing path
+            #path_list.append(path_stack.pop(-1)
+            temp = path_stack.pop(-1)
+            #print(temp)
+            time.sleep(0.25)
+            os.system('clear')
+            print_state(temp)
+        
+
+    def print_path_cost(self):
+        print(f"{ANSI_GREEN}Cost of path :{self.node_path.depth} {ANSI_RESET}")
+    
+    def show_node_expanded(self):
+        print(f"{ANSI_GREEN}# Nodes Expanded :{len(self.expanded_nodes)} {ANSI_RESET}")
+        for i in self.expanded_nodes:
+            print_state(i)
+    
+    def show_search_depth(self):
+        ''' 
+        a) search depth: the level of the goal
+        b) max search depth: the deepest level reach during the search.
+        It is greater than or equal to searxh depth.
+        
+        '''
+        print_green(f"#Search Depth :{self.node_path.depth}")
+        print_green(f"#MaX Search Depth [implement me]!!!:{self.node_path.depth}")
+
+    def print_elapsed_time(self):
+        print(f"{ANSI_GREEN}Time Elapsed :{self.elapsed_time} {ANSI_RESET}")
+
+    def print_title(self):
+        os.system("clear")
+        print('*'*20)
+        print_yellow(self.last_search)
+        print('*'*20)
+    
 
 
     
-
+    def print_details(self):
         
-    def print_state(state):
-        pass
+        # cost of path
+        self.print_path_cost()
+
+        # nodes expanded
+        self.show_node_expanded()
+
+        # search depth
+        self.show_search_depth()
+
+        #running time
+        self.print_elapsed_time()
+        
+        time.sleep(3)
+        os.system('clear')
+        # path to goal
+        self.print_path()
+
+
+
+        # -- path to goal
+        # root.print_path()
+        # root.print_path_cost()
+        # -- consider not printing
+        #root.show_node_expanded()
+        #root.print_elapsed_time()
+        #root.show_search_depth()
+    
 
     def traverse_tree(state):
         pass
@@ -364,7 +522,24 @@ class Node():
         return l
 
         
-    
+def print_state(state):
+
+        EMPTY_TILE = 0
+
+        for i in state:
+            for j in i:
+                if j == EMPTY_TILE:
+                    print(f"{ANSI_ORANGE_BG} _ {ANSI_RESET}",end="|")
+                else:
+                    print(f" {j} ",end="|")
+                    
+            print('\n')
+            print('-'*12)
+
+        print("="*12)
+        
+
+
 def get_heuristic_val(state, goal_state, option='Manhattan' ):
     h = []
     row_mat = []
@@ -526,31 +701,74 @@ def find(c, board):
         return i,j
                 
     return -1,-1
-    
+
+def get_arg(param_index, default=None):
+    """
+        Gets a command line argument by index (note: index starts from 1)
+        If the argument is not supplies, it tries to use a default value.
+
+        If a default value isn't supplied, an error message is printed
+        and terminates the program.
+    """
+    try:
+        return sys.argv[param_index]
+    except IndexError as e:
+        if default:
+            return default
+        else:
+            print(e)
+            print(
+                f"[FATAL] The comand-line argument #[{param_index}] is missing")
+            exit(-1)  # Program execution failed.
+   
 
 def main():
 
-    #state10 = [[5,0,8],[4,2,1], [7,3,6]]
-    #state20 = [[1,2,3],[4,5,6], [7,8,0]]
-    #get_heuristic_val(state10, state20)
-    #get_heuristic_val(state10, state20, option='Euclidean')
-    #print_blue('*.*.*.*.*')
+    # getting args
+    default_state = [[1,2,5],[3,4,0],[6,7,8]]
+    default_goal = [[0,1,2],[3,4,5],[6,7,8]]
+    initial_state = get_arg(1,default_state)
+    goal_state = get_arg(2, default_goal)
+    #print(initial_state,goal_state)
 
-    state1 = [[1,2,5],[3,4,0],[6,7,8]]
-    state2 = [[0,1,2],[3,4,5],[6,7,8]]
+    root = Node(initial_state,None)
 
-    ln = Node(state1, None)
+    root.print_title()
+    time.sleep(1)
 
-    la = Node(state1, None)
-    la.a_start(state2)
+    # BFS
+    root.bfs(goal_state)
+    root.print_details()
     
-""" 
-    #print_blue(ln.bfs(state2))
-    frontier = [ln , l2]
-    frontier = sorted(frontier, key= lambda c:c.cost)
-    print(frontier[0].cost)
-    print(frontier[1].cost)
+    os.system("clear")
+    print('*'*20)
+    print_yellow("DFS")
+    print('*'*20)
 
- """
+    root.print_title()
+    time.sleep(1)
+
+    # DFS
+    root.dfs(goal_state)
+    root.print_details()
+
+    
+
+    root.print_title()
+    time.sleep(1)
+
+    # A* Manhattan
+    root.a_star(goal_state)
+    root.print_details()
+
+
+    root.print_title()
+    time.sleep(1)
+        
+    # A* Euclidean
+    root.a_star(goal_state, 'Euclidean')
+    root.print_details()
+       
+    
 if __name__ == "__main__":
     main()
