@@ -4,6 +4,7 @@ import time
 from tabulate import tabulate
 import os
 import sys
+import numpy
 
 # https://bluesock.org/~willkg/dev/ansi.html
 ANSI_RESET = "\u001B[0m"
@@ -61,6 +62,7 @@ class Node():
         self.node_path = None
         self.expanded_nodes = []
         self.elapsed_time = 0
+        self.max_depth = 0
         self.last_search = ""
     
     def dfs(self, goal):
@@ -86,6 +88,7 @@ class Node():
                     
             return Failure
         '''
+        self.max_depth = 0
         self.last_search = "DFS"
         frontier = [self]
         explored = []
@@ -134,6 +137,8 @@ class Node():
                         print_state(new_state)
 
                         ns = Node(new_state, current_node, depth=current_node.depth+1)
+                        if ns.depth > self.max_depth:
+                            self.max_depth = ns.depth
                         frontier.append(ns)
                         current_node.neighbors.append(ns) 
 
@@ -183,6 +188,7 @@ class Node():
                     
             return Failure
         '''
+        self.max_depth = 0
         self.last_search = "BFS"
         frontier = [self]
         explored = []
@@ -230,6 +236,8 @@ class Node():
                         print_blue("[Steps] Add Next Node to Frontier")
                         print_state(new_state)
                         ns = Node(new_state, current_node, depth=current_node.depth+1)
+                        if ns.depth > self.max_depth:
+                            self.max_depth = ns.depth
                         frontier.append(ns)
                         current_node.neighbors.append(ns) 
 
@@ -267,7 +275,7 @@ class Node():
             f(n) = total cost
 
         '''
-        
+        self.max_depth = 0
         self.last_search = "A* " + heuristic
         frontier = [self]
         explored = []
@@ -316,6 +324,8 @@ class Node():
 
 
                         ns = Node(new_state, current_node, depth=depth, h_cost=h_cost)
+                        if ns.depth > self.max_depth:
+                            self.max_depth = ns.depth
                         frontier.append(ns)
                         current_node.neighbors.append(ns) 
 
@@ -439,11 +449,14 @@ class Node():
             #print(temp)
             time.sleep(0.25)
             os.system('clear')
+            print_yellow(f"[Visualization]: Path to goal [{self.last_search}]")
             print_state(temp)
+        
+        time.sleep(0.5)
         
 
     def print_path_cost(self):
-        print(f"{ANSI_GREEN}Cost of path :{self.node_path.depth} {ANSI_RESET}")
+        print(f"{ANSI_GREEN}# Cost of path :{self.node_path.depth} {ANSI_RESET}")
     
     def show_node_expanded(self):
         print(f"{ANSI_GREEN}# Nodes Expanded :{len(self.expanded_nodes)} {ANSI_RESET}")
@@ -457,11 +470,11 @@ class Node():
         It is greater than or equal to searxh depth.
         
         '''
-        print_green(f"#Search Depth :{self.node_path.depth}")
-        print_green(f"#MaX Search Depth [implement me]!!!:{self.node_path.depth}")
+        print_green(f"# Search Depth :{self.node_path.depth}")
+        print_green(f"# Max Search Depth:{self.max_depth}")
 
     def print_elapsed_time(self):
-        print(f"{ANSI_GREEN}Time Elapsed :{self.elapsed_time} {ANSI_RESET}")
+        print(f"{ANSI_GREEN}# Time Elapsed :{self.elapsed_time} {ANSI_RESET}")
 
     def print_title(self):
         os.system("clear")
@@ -490,6 +503,8 @@ class Node():
         os.system('clear')
         # path to goal
         self.print_path()
+        time.sleep(1)
+
 
 
 
@@ -721,52 +736,71 @@ def get_arg(param_index, default=None):
                 f"[FATAL] The comand-line argument #[{param_index}] is missing")
             exit(-1)  # Program execution failed.
    
+def reshape_list(raw_list):
+    shaped_list = []
+    l1 = raw_list[0:3]
+    l2 = raw_list[3:6]
+    l3 = raw_list[6:]
 
+    shaped_list.append(l1)
+    shaped_list.append(l2)
+    shaped_list.append(l3)
+
+    return shaped_list
+
+def parse_arg(arg_str):
+    arg = list(map(int, arg_str))
+    arg = reshape_list(arg)
+
+    return arg
+  
+  
 def main():
 
     # getting args
-    default_state = [[1,2,5],[3,4,0],[6,7,8]]
-    default_goal = [[0,1,2],[3,4,5],[6,7,8]]
+    default_state = 1,2,0,3,4,5,6,7,8
+    default_goal = 0,1,2,3,4,5,6,7,8
     initial_state = get_arg(1,default_state)
     goal_state = get_arg(2, default_goal)
-    #print(initial_state,goal_state)
+    # parsing args
+    initial_state = parse_arg(default_state)
+    goal_state = parse_arg(goal_state)
+
 
     root = Node(initial_state,None)
 
-    root.print_title()
-    time.sleep(1)
+
+   
 
     # BFS
     root.bfs(goal_state)
+    root.print_title()
+    time.sleep(2)
+
     root.print_details()
     
-    os.system("clear")
-    print('*'*20)
-    print_yellow("DFS")
-    print('*'*20)
-
-    root.print_title()
-    time.sleep(1)
-
     # DFS
     root.dfs(goal_state)
+    root.print_title()
+    time.sleep(2)
+
     root.print_details()
 
     
-
-    root.print_title()
-    time.sleep(1)
 
     # A* Manhattan
     root.a_star(goal_state)
+    root.print_title()
+    time.sleep(2)
+
     root.print_details()
 
-
-    root.print_title()
-    time.sleep(1)
         
     # A* Euclidean
     root.a_star(goal_state, 'Euclidean')
+    root.print_title()
+    time.sleep(2)
+
     root.print_details()
        
     
