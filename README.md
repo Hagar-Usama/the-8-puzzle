@@ -9,7 +9,7 @@ The project is meant to solve the 8-puzzle game. The objective of this project i
 * Depth First Search
 * A* Search.
 
-# Terminal Session
+## Terminal Session
 [👉 Check this](2)
 
 
